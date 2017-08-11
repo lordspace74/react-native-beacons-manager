@@ -248,8 +248,8 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     private RangeNotifier mRangeNotifier = new RangeNotifier() {
         @Override
         public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-            Log.d(LOG_TAG, "rangingConsumer didRangeBeaconsInRegion, beacons: " + beacons.toString());
-            Log.d(LOG_TAG, "rangingConsumer didRangeBeaconsInRegion, region: " + region.toString());
+            Log.d(LOG_TAG, "fixed rangingConsumer didRangeBeaconsInRegion, beacons: " + beacons.toString());
+            Log.d(LOG_TAG, "fixed rangingConsumer didRangeBeaconsInRegion, region: " + region.toString());
             sendEvent(mReactContext, "beaconsDidRange", createRangingResponse(beacons, region));
         }
     };
@@ -265,8 +265,14 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
             b.putInt("major", beacon.getId2().toInt());
             b.putInt("minor", beacon.getId3().toInt());
             b.putInt("rssi", beacon.getRssi());
-            b.putDouble("distance", beacon.getDistance());
-            b.putString("proximity", getProximity(beacon.getDistance()));
+
+            // BUG FIX! Distance seems to be calculated to NaN or INF
+            // causing a runtime error with the message:
+            // folly::toJson: JSON object value was a NaN or INF
+
+            // Just exclude distance and proximity since we are not using it!
+            // b.putDouble("distance", beacon.getDistance());
+            // b.putString("proximity", getProximity(beacon.getDistance()));
             a.pushMap(b);
         }
         map.putArray("beacons", a);
